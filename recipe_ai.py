@@ -56,7 +56,7 @@ st.title("🍽️ AI Recipe Generator")
 with st.form("recipe_form"):
     ingredients = st.text_input("Ingredients (comma-separated):")
     diet = st.selectbox("Diet", ["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto"])
-    cuisine = st.selectbox("Cuisine", ["Any", "Italian", "Indian", "Mexican", "Chinese"])
+    cuisine = st.selectbox("Cuisine", ["Any", "Italian", "Indian", "Pakistani", "Mexican", "Chinese", "Pakistani (Traditional)"])
     meal_type = st.selectbox("Meal Type", ["Breakfast", "Lunch", "Dinner", "Dessert"])
     submit = st.form_submit_button("Generate Recipe")
 

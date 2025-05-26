@@ -159,7 +159,9 @@ with st.sidebar:
         )
         cuisine_input_val = st.selectbox(
             "Cuisine Style",
-            ["Any", "Italian", "Indian", "Mexican", "Chinese", "Mediterranean", "Thai", "Japanese", "French", "American", "Fusion"],
+            [
+                "Any", "Italian", "Indian", "Pakistani", "Pakistani (Traditional)", "Mexican", "Chinese", "Mediterranean", "Thai", "Japanese", "French", "American", "Fusion"
+            ],
             help="Select a preferred cuisine style, or 'Any' for flexibility."
         )
         diet_input_val = st.selectbox(
