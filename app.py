@@ -1,12 +1,8 @@
-# If you see "'streamlit' is not recognized", install it first:
-# pip install streamlit
-# Then run:
-# streamlit run app.py
-
 import os
 import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as genai
+import json
 
 def extract_recipe_name(recipe_text):
     """
@@ -130,6 +126,25 @@ def generate_recipe(ingredients, diet, cuisine, meal_type):
         st.error(f"⚠️ Recipe generation failed: {str(e)}")
         return None
 
+# --- Recipe History File Handling ---
+HISTORY_FILE = "recipe_history.json"
+
+def load_recipe_history():
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+def save_recipe_history(history):
+    try:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
 # --- Streamlit UI ---
 st.set_page_config(page_title="AI Chef - Recipe Generator", page_icon="🧑‍🍳", layout="wide")
 st.title("🧑‍🍳 AI Chef - Recipe Generator")
@@ -141,6 +156,11 @@ if 'current_generated_recipe_text' not in st.session_state:
     st.session_state.current_generated_recipe_text = None
 if 'last_generated_inputs' not in st.session_state:
     st.session_state.last_generated_inputs = None
+# Add: Recipe history session state
+if 'recipe_history' not in st.session_state:
+    st.session_state.recipe_history = load_recipe_history() # Load history from file
+if 'selected_history_index' not in st.session_state:
+    st.session_state.selected_history_index = None
 
 # --- Sidebar for Inputs ---
 with st.sidebar:
@@ -171,10 +191,17 @@ with st.sidebar:
         )
         submitted = st.form_submit_button("✨ Generate Recipe", type="primary", use_container_width=True)
 
-    # Removed: Saved Recipes section from sidebar
-    # st.markdown("---")
-    # st.header("📖 Saved Recipes")
-    # ... (logic for displaying saved recipes removed)
+    # --- Recipe History Section ---
+    st.markdown("---")
+    st.header("📜 Recipe History")
+    if st.session_state.recipe_history:
+        for idx, recipe in enumerate(reversed(st.session_state.recipe_history)):
+            display_idx = len(st.session_state.recipe_history) - 1 - idx
+            label = recipe['name'] if recipe['name'] else f"Recipe {display_idx+1}"
+            if st.button(label, key=f"history_{display_idx}"):
+                st.session_state.selected_history_index = display_idx
+    else:
+        st.caption("No recipes generated yet this session.")
 
 # --- Main Area for Displaying Recipes ---
 main_placeholder = st.empty() # Use a placeholder for dynamic content switching
@@ -202,16 +229,21 @@ if submitted:
                 "diet": diet_input_val,
             } if generated_text else None
 
-
+            # Add to recipe history if generated
             if generated_text:
-                st.success("🎉 Your custom recipe is ready!")
                 recipe_name = extract_recipe_name(generated_text)
-
-                # Removed: Call to save_recipe_to_db and related st.toast/st.error
-                # if save_recipe_to_db(recipe_name, ingredients_input_val, diet_input_val, cuisine_input_val, meal_type_input_val, generated_text):
-                #     st.toast(f"✅ Recipe '{recipe_name}' saved successfully!", icon="💾")
-                # else:
-                #     st.error("💥 Failed to save the recipe to the database.")
+                st.session_state.recipe_history.append({
+                    'name': recipe_name,
+                    'text': generated_text,
+                    'inputs': {
+                        'ingredients': ingredients_input_val,
+                        'meal_type': meal_type_input_val,
+                        'cuisine': cuisine_input_val,
+                        'diet': diet_input_val,
+                    }
+                })
+                save_recipe_history(st.session_state.recipe_history) # Save updated history to file
+                st.success("🎉 Your custom recipe is ready!")
 
                 st.subheader(f"✨ Your Custom Recipe: {recipe_name}")
                 st.markdown(f"**Generated for:** Ingredients: `{ingredients_input_val}`, Meal: `{meal_type_input_val}`, Cuisine: `{cuisine_input_val}`, Diet: `{diet_input_val}`")
@@ -221,6 +253,16 @@ if submitted:
                 if ingredients_input_val.strip(): # Only show error if user actually put ingredients
                      st.error("💥 Oops! Failed to generate a recipe. Please check error messages above or try adjusting your inputs.")
                 st.session_state.last_generated_inputs = None # Clear if generation failed
+
+elif st.session_state.selected_history_index is not None:
+    # Display a recipe from history if selected
+    with main_placeholder.container():
+        recipe = st.session_state.recipe_history[st.session_state.selected_history_index]
+        st.subheader(f"✨ Your Custom Recipe: {recipe['name']}")
+        inputs = recipe['inputs']
+        st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
+        st.markdown("---")
+        st.markdown(recipe['text'])
 
 elif st.session_state.current_generated_recipe_text:
     # Display the last generated recipe if no specific action (new submit) is taken
