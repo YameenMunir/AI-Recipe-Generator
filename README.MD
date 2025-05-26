@@ -25,6 +25,10 @@ This Streamlit application allows users to generate custom recipes based on ingr
     *   Loading spinners and success/error messages for better user experience.
     *   Responsive design for different screen sizes.
 *   **Session State Management:** Remembers and displays the last generated recipe within the current session until a new one is created.
+*   **Recipe History with Delete Option:**
+    *   The sidebar displays a list of all previously generated recipes for the current session and from the `recipe_history.json` file.
+    *   Each recipe in the history has a delete (🗑️) button next to it. Clicking this button will permanently remove the recipe from the history and update the file.
+    *   You can click a recipe name to view it again in the main area.
 
 ## Project Structure
 
@@ -139,6 +143,13 @@ The application is primarily contained within a single Python script (`app.py` o
 *   `.gitignore`: Specifies intentionally untracked files that Git should ignore.
 *   `README.md`: This file.
 *   `requirements.txt` (optional but recommended): Lists project dependencies.
+
+## Recipe History and Deletion
+
+- All generated recipes are saved in a file called `recipe_history.json`.
+- The sidebar displays your recipe history for the current session and from this file.
+- To delete a recipe, click the 🗑️ button next to it in the sidebar. The recipe will be removed from both the session and the file.
+- If you delete a recipe that is currently being viewed, the selection will be cleared.
 
 ## Potential Future Enhancements
 
