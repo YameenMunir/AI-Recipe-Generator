@@ -1,15 +1,12 @@
+# If you see "'streamlit' is not recognized", install it first:
+# pip install streamlit
+# Then run:
+# streamlit run app.py
+
 import os
 import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as genai
-# Removed: from datetime import datetime
-# Removed: import sqlite3 (ensure this is also removed from your actual file if it was there)
-
-# Removed: DB_NAME constant
-# Removed: init_db() function
-# Removed: save_recipe_to_db() function
-# Removed: get_saved_recipes() function
-# Removed: get_single_recipe() function
 
 def extract_recipe_name(recipe_text):
     """
