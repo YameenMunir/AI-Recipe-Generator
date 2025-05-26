@@ -198,8 +198,19 @@ with st.sidebar:
         for idx, recipe in enumerate(reversed(st.session_state.recipe_history)):
             display_idx = len(st.session_state.recipe_history) - 1 - idx
             label = recipe['name'] if recipe['name'] else f"Recipe {display_idx+1}"
-            if st.button(label, key=f"history_{display_idx}"):
-                st.session_state.selected_history_index = display_idx
+            col1, col2 = st.columns([4,1])
+            with col1:
+                if st.button(label, key=f"history_{display_idx}"):
+                    st.session_state.selected_history_index = display_idx
+            with col2:
+                if st.button("🗑️", key=f"delete_{display_idx}"):
+                    # Remove the recipe from history
+                    del st.session_state.recipe_history[display_idx]
+                    save_recipe_history(st.session_state.recipe_history)
+                    # If the deleted recipe was selected, clear selection
+                    if st.session_state.selected_history_index == display_idx:
+                        st.session_state.selected_history_index = None
+                    st.rerun()
     else:
         st.caption("No recipes generated yet this session.")
 
