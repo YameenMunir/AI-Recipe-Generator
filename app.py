@@ -277,6 +277,7 @@ if submitted:
                 st.markdown(generated_text)
 
                 # --- Export/Download Buttons ---
+                st.markdown("#### 📤 Export Recipe")
                 col_txt, col_pdf = st.columns(2)
                 with col_txt:
                     st.download_button(
@@ -309,6 +310,7 @@ elif st.session_state.selected_history_index is not None:
         st.markdown(recipe['text'])
 
         # --- Export/Download Buttons ---
+        st.markdown("#### 📤 Export Recipe")
         col_txt, col_pdf = st.columns(2)
         with col_txt:
             st.download_button(
@@ -337,6 +339,7 @@ elif st.session_state.current_generated_recipe_text:
         st.markdown(st.session_state.current_generated_recipe_text)
 
         # --- Export/Download Buttons ---
+        st.markdown("#### 📤 Export Recipe")
         col_txt, col_pdf = st.columns(2)
         with col_txt:
             st.download_button(
