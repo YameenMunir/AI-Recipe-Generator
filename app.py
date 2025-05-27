@@ -3,6 +3,8 @@ import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as genai
 import json
+import io
+from fpdf import FPDF
 
 def extract_recipe_name(recipe_text):
     """
@@ -126,6 +128,18 @@ def generate_recipe(ingredients, diet, cuisine, meal_type):
         st.error(f"⚠️ Recipe generation failed: {str(e)}")
         return None
 
+def recipe_to_pdf(recipe_name, recipe_text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, recipe_name, ln=True)
+    pdf.set_font("Arial", "", 12)
+    for line in recipe_text.split('\n'):
+        pdf.multi_cell(0, 8, line)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    return io.BytesIO(pdf_bytes)
+
 # --- Recipe History File Handling ---
 HISTORY_FILE = "recipe_history.json"
 
@@ -213,6 +227,7 @@ with st.sidebar:
                     st.rerun()
     else:
         st.caption("No recipes generated yet this session.")
+        
 
 # --- Main Area for Displaying Recipes ---
 main_placeholder = st.empty() # Use a placeholder for dynamic content switching
@@ -260,6 +275,24 @@ if submitted:
                 st.markdown(f"**Generated for:** Ingredients: `{ingredients_input_val}`, Meal: `{meal_type_input_val}`, Cuisine: `{cuisine_input_val}`, Diet: `{diet_input_val}`")
                 st.markdown("---")
                 st.markdown(generated_text)
+
+                # --- Export/Download Buttons ---
+                col_txt, col_pdf = st.columns(2)
+                with col_txt:
+                    st.download_button(
+                        label="💾 Download as .txt",
+                        data=generated_text,
+                        file_name=f"{recipe_name}.txt",
+                        mime="text/plain"
+                    )
+                with col_pdf:
+                    pdf_bytes = recipe_to_pdf(recipe_name, generated_text)
+                    st.download_button(
+                        label="📄 Download as PDF",
+                        data=pdf_bytes,
+                        file_name=f"{recipe_name}.pdf",
+                        mime="application/pdf"
+                    )
             else:
                 if ingredients_input_val.strip(): # Only show error if user actually put ingredients
                      st.error("💥 Oops! Failed to generate a recipe. Please check error messages above or try adjusting your inputs.")
@@ -275,6 +308,23 @@ elif st.session_state.selected_history_index is not None:
         st.markdown("---")
         st.markdown(recipe['text'])
 
+        # --- Export/Download Buttons ---
+        col_txt, col_pdf = st.columns(2)
+        with col_txt:
+            st.download_button(
+                label="💾 Download as .txt",
+                data=recipe['text'],
+                file_name=f"{recipe['name']}.txt",
+                mime="text/plain"
+            )
+        with col_pdf:
+            pdf_bytes = recipe_to_pdf(recipe['name'], recipe['text'])
+            st.download_button(
+                label="📄 Download as PDF",
+                data=pdf_bytes,
+                file_name=f"{recipe['name']}.pdf",
+                mime="application/pdf"
+            )
 elif st.session_state.current_generated_recipe_text:
     # Display the last generated recipe if no specific action (new submit) is taken
     with main_placeholder.container():
@@ -285,6 +335,24 @@ elif st.session_state.current_generated_recipe_text:
             st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
         st.markdown("---")
         st.markdown(st.session_state.current_generated_recipe_text)
+
+        # --- Export/Download Buttons ---
+        col_txt, col_pdf = st.columns(2)
+        with col_txt:
+            st.download_button(
+                label="💾 Download as .txt",
+                data=st.session_state.current_generated_recipe_text,
+                file_name=f"{recipe_name}.txt",
+                mime="text/plain"
+            )
+        with col_pdf:
+            pdf_bytes = recipe_to_pdf(recipe_name, st.session_state.current_generated_recipe_text)
+            st.download_button(
+                label="📄 Download as PDF",
+                data=pdf_bytes,
+                file_name=f"{recipe_name}.pdf",
+                mime="application/pdf"
+            )
 else:
     # Initial state or after clearing everything
     with main_placeholder.container():
