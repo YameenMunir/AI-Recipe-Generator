@@ -128,6 +128,8 @@ The application is primarily contained within a single Python script (`app.py` o
 - Place your API key in a `.env` file as described above.
 - If the key is missing or invalid, the app will display an error and stop.
 
+
+
 ## Files
 
 - `app.py` (or your main script name): Contains all the Python code for the Streamlit application and AI interaction.
@@ -145,10 +147,14 @@ The application is primarily contained within a single Python script (`app.py` o
 
 ## Potential Future Enhancements
 
-- **Image Generation for Recipes:** Integrate a service to generate an image of the described dish.
-- **Option to Save/Export:** Allow users to download the recipe as a text file or PDF.
-- **User accounts for multi-user support (if deploying publicly).**
-- **More advanced input options (e.g., cooking skill level, desired total cooking time).**
+- Integrate an alternative image generation API (e.g., Stable Diffusion via Replicate or Hugging Face) for recipe images.
+- Add user authentication and personal recipe collections.
+- Enable sharing recipes via social media or email.
+- Add nutritional analysis for generated recipes.
+- Support for multi-language recipe generation.
+- Allow users to rate and comment on generated recipes.
+- Add a shopping list generator based on recipe ingredients.
+- Implement advanced filtering and search in recipe history.
 
 ---
 
