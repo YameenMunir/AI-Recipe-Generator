@@ -166,15 +166,6 @@ st.set_page_config(page_title="AI Chef - Recipe Generator", page_icon="🧑‍�
 st.title("🧑‍🍳 AI Chef - Recipe Generator")
 st.markdown("Let AI craft a unique recipe based on your ingredients and preferences!")
 
-# --- Home Button (always visible at the top right) ---
-home_col = st.columns([8, 1])[1]
-with home_col:
-    if st.button('🏠 Home', key='home_btn', help='Go to the starting page'):
-        st.session_state.selected_history_index = None
-        st.session_state.current_generated_recipe_text = None
-        st.session_state.last_generated_inputs = None
-        st.rerun()
-
 # Initialize session state variables
 # Removed: viewing_recipe_id
 if 'current_generated_recipe_text' not in st.session_state:
@@ -202,13 +193,13 @@ with st.sidebar:
             index=0,
             help="What type of meal are you preparing?"
         )
-        cuisine_input_val = st.selectbox(
+        # Cuisine input: allow user to type their own cuisine
+        cuisine_input_val = st.text_input(
             "Cuisine Style",
-            [
-                "Any", "Italian", "Indian", "Pakistani", "Pakistani (Traditional)", "Mexican", "Chinese", "Mediterranean", "Thai", "Japanese", "French", "American", "Fusion"
-            ],
-            help="Select a preferred cuisine style, or 'Any' for flexibility."
+            placeholder="e.g., Italian, Indian, Peruvian, Fusion, etc.",
+            help="Type any cuisine style you want. Leave blank for 'Any'."
         )
+        cuisine_final_val = cuisine_input_val.strip() if cuisine_input_val.strip() else "Any"
         diet_input_val = st.selectbox(
             "Dietary Preference",
             ["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto", "Paleo", "Dairy-Free", "Low-Carb", "Pescatarian"],
@@ -277,7 +268,7 @@ if submitted and not invalid_time:
                 generated_text = generate_recipe(
                     ingredients_input_val,
                     diet_input_val,
-                    cuisine_input_val,
+                    cuisine_final_val,
                     meal_type_input_val,
                     skill_level_input_val,
                     total_time_input_val
@@ -287,7 +278,7 @@ if submitted and not invalid_time:
             st.session_state.last_generated_inputs = {
                 "ingredients": ingredients_input_val,
                 "meal_type": meal_type_input_val,
-                "cuisine": cuisine_input_val,
+                "cuisine": cuisine_final_val,
                 "diet": diet_input_val,
                 "skill_level": skill_level_input_val,
                 "total_time": total_time_input_val
@@ -302,7 +293,7 @@ if submitted and not invalid_time:
                     'inputs': {
                         'ingredients': ingredients_input_val,
                         'meal_type': meal_type_input_val,
-                        'cuisine': cuisine_input_val,
+                        'cuisine': cuisine_final_val,
                         'diet': diet_input_val,
                         'skill_level': skill_level_input_val,
                         'total_time': total_time_input_val
@@ -345,7 +336,7 @@ elif st.session_state.selected_history_index is not None:
         recipe = st.session_state.recipe_history[st.session_state.selected_history_index]
         st.subheader(f"✨ Your Custom Recipe: {recipe['name']}")
         inputs = recipe['inputs']
-        st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
+        st.markdown(f"**Generated for:** Ingredients: `{{inputs['ingredients']}}`, Meal: `{{inputs['meal_type']}}`, Cuisine: `{{inputs['cuisine']}}`, Diet: `{{inputs['diet']}}`")
         st.markdown("---")
         st.markdown(recipe['text'])
 
@@ -374,7 +365,7 @@ elif st.session_state.current_generated_recipe_text:
         st.subheader(f"✨ Your Custom Recipe: {recipe_name}")
         if st.session_state.last_generated_inputs:
             inputs = st.session_state.last_generated_inputs
-            st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
+            st.markdown(f"**Generated for:** Ingredients: `{{inputs['ingredients']}}`, Meal: `{{inputs['meal_type']}}`, Cuisine: `{{inputs['cuisine']}}`, Diet: `{{inputs['diet']}}`")
         st.markdown("---")
         st.markdown(st.session_state.current_generated_recipe_text)
 
