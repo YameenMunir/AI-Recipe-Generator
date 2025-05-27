@@ -66,14 +66,16 @@ except Exception as e:
     st.error("Please ensure your API key is correct and has the Gemini API enabled.")
     st.stop()
 
-def generate_recipe(ingredients, diet, cuisine, meal_type):
-    """Generates a recipe using the Gemini AI model based on user inputs."""
+def generate_recipe(ingredients, diet, cuisine, meal_type, skill_level="Any", total_time=""):
+    """Generates a recipe using the Gemini AI model based on user inputs, including skill level and total time."""
     prompt = f"""
     Create a detailed {meal_type.lower()} recipe using primarily these ingredients: {ingredients}.
 
     Requirements:
     - Diet: {diet if diet != "None" else "No dietary restrictions"}
     - Cuisine style: {cuisine if cuisine != "Any" else "Any style is acceptable"}
+    - Cooking skill level: {skill_level if skill_level != "Any" else "Any skill level (make it accessible)"}
+    {'- The total time for the recipe (prep + cook) should not exceed ' + total_time + ' minutes.' if total_time.strip() else ''}
 
     The recipe should include:
     1. CREATIVE RECIPE NAME (make this appealing and unique)
@@ -203,6 +205,26 @@ with st.sidebar:
             ["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto", "Paleo", "Dairy-Free", "Low-Carb", "Pescatarian"],
             help="Select any dietary restrictions or preferences."
         )
+        # --- Advanced Input Options ---
+        skill_level_input_val = st.selectbox(
+            "Cooking Skill Level",
+            ["Any", "Beginner", "Intermediate", "Advanced"],
+            index=0,
+            help="Choose your cooking skill level for recipe complexity."
+        )
+        total_time_input_val = st.text_input(
+            "Desired Total Cooking Time (Minutes)",
+            placeholder="e.g., 30, 45, 60",
+            help="Specify a maximum total cooking time in minutes, or leave blank for no limit."
+        )
+
+        # Error handling for total_time_input_val
+        invalid_time = False
+        if total_time_input_val.strip():
+            if not total_time_input_val.strip().isdigit() or int(total_time_input_val.strip()) <= 0:
+                st.warning("⚠️ Please enter a positive number for total cooking time, or leave blank for no limit.")
+                invalid_time = True
+
         submitted = st.form_submit_button("✨ Generate Recipe", type="primary", use_container_width=True)
 
     # --- Recipe History Section ---
@@ -232,9 +254,7 @@ with st.sidebar:
 # --- Main Area for Displaying Recipes ---
 main_placeholder = st.empty() # Use a placeholder for dynamic content switching
 
-# Removed: Block for if st.session_state.viewing_recipe_id is not None:
-
-if submitted:
+if submitted and not invalid_time:
     # A new recipe generation was submitted
     with main_placeholder.container():
         # Removed: st.session_state.viewing_recipe_id = None
@@ -245,7 +265,14 @@ if submitted:
             st.session_state.last_generated_inputs = None
         else:
             with st.spinner("🧑‍🍳 Chef is whisking up your recipe... This might take a moment!"):
-                generated_text = generate_recipe(ingredients_input_val, diet_input_val, cuisine_input_val, meal_type_input_val)
+                generated_text = generate_recipe(
+                    ingredients_input_val,
+                    diet_input_val,
+                    cuisine_input_val,
+                    meal_type_input_val,
+                    skill_level_input_val,
+                    total_time_input_val
+                )
 
             st.session_state.current_generated_recipe_text = generated_text
             st.session_state.last_generated_inputs = {
@@ -253,6 +280,8 @@ if submitted:
                 "meal_type": meal_type_input_val,
                 "cuisine": cuisine_input_val,
                 "diet": diet_input_val,
+                "skill_level": skill_level_input_val,
+                "total_time": total_time_input_val
             } if generated_text else None
 
             # Add to recipe history if generated
@@ -266,13 +295,15 @@ if submitted:
                         'meal_type': meal_type_input_val,
                         'cuisine': cuisine_input_val,
                         'diet': diet_input_val,
+                        'skill_level': skill_level_input_val,
+                        'total_time': total_time_input_val
                     }
                 })
                 save_recipe_history(st.session_state.recipe_history) # Save updated history to file
                 st.success("🎉 Your custom recipe is ready!")
 
                 st.subheader(f"✨ Your Custom Recipe: {recipe_name}")
-                st.markdown(f"**Generated for:** Ingredients: `{ingredients_input_val}`, Meal: `{meal_type_input_val}`, Cuisine: `{cuisine_input_val}`, Diet: `{diet_input_val}`")
+                st.markdown(f"**Generated for:** Ingredients: `{ingredients_input_val}`, Meal: `{meal_type_input_val}`, Cuisine: `{cuisine_input_val}`, Diet: `{diet_input_val}`, Skill: `{skill_level_input_val}`, Max Time: `{total_time_input_val or 'Any'}` minutes")
                 st.markdown("---")
                 st.markdown(generated_text)
 
