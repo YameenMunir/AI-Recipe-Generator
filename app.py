@@ -336,7 +336,7 @@ elif st.session_state.selected_history_index is not None:
         recipe = st.session_state.recipe_history[st.session_state.selected_history_index]
         st.subheader(f"✨ Your Custom Recipe: {recipe['name']}")
         inputs = recipe['inputs']
-        st.markdown(f"**Generated for:** Ingredients: `{{inputs['ingredients']}}`, Meal: `{{inputs['meal_type']}}`, Cuisine: `{{inputs['cuisine']}}`, Diet: `{{inputs['diet']}}`")
+        st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
         st.markdown("---")
         st.markdown(recipe['text'])
 
@@ -365,7 +365,7 @@ elif st.session_state.current_generated_recipe_text:
         st.subheader(f"✨ Your Custom Recipe: {recipe_name}")
         if st.session_state.last_generated_inputs:
             inputs = st.session_state.last_generated_inputs
-            st.markdown(f"**Generated for:** Ingredients: `{{inputs['ingredients']}}`, Meal: `{{inputs['meal_type']}}`, Cuisine: `{{inputs['cuisine']}}`, Diet: `{{inputs['diet']}}`")
+            st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
         st.markdown("---")
         st.markdown(st.session_state.current_generated_recipe_text)
 
