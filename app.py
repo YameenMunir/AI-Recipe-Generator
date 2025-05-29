@@ -1,3 +1,4 @@
+# Importing necessary libraries
 import os
 import streamlit as st
 from dotenv import load_dotenv
@@ -5,7 +6,11 @@ import google.generativeai as genai
 import json
 import io
 from fpdf import FPDF
+import googletrans
+from googletrans import Translator
+import unicodedata
 
+# Initialize the Google Generative AI client
 def extract_recipe_name(recipe_text):
     """
     Extracts the recipe name from the generated text.
@@ -30,11 +35,13 @@ def extract_recipe_name(recipe_text):
         # General "1. " followed by text, trying to avoid it being an instruction
         elif cleaned_line.lower().startswith("1."):
             potential_name = cleaned_line[len("1."):].strip()
+            
             # Heuristic: if it's short and doesn't contain typical instruction keywords, it might be the name
             if len(potential_name.split()) < 10 and not any(kw in potential_name.lower() for kw in ["ingredient", "step", "prep", "cook", "serving", "total time", "description"]):
                 name_part = potential_name
             else: # If it's longer or has keywords, it's probably not the name, so continue to next line
                 continue
+            
         # Fallback: if no specific prefix, take the first non-empty, non-instruction-like line
         elif not name_part and len(lines) > 0 and lines[0].strip() == cleaned_line: # If it's the very first line
              if len(cleaned_line.split()) < 10 and not any(kw in cleaned_line.lower() for kw in ["ingredient", "step", "prep", "cook", "serving", "total time", "description"]):
@@ -48,7 +55,7 @@ def extract_recipe_name(recipe_text):
 
     return "Untitled Recipe" # Fallback if no suitable name found
 
-# Removed: Call to init_db()
+
 
 # --- AI Configuration ---
 load_dotenv()
@@ -66,6 +73,7 @@ except Exception as e:
     st.error("Please ensure your API key is correct and has the Gemini API enabled.")
     st.stop()
 
+# --- Recipe Generation Function ---
 def generate_recipe(ingredients, diet, cuisine, meal_type, skill_level="Any", total_time=""):
     """Generates a recipe using the Gemini AI model based on user inputs, including skill level and total time."""
     prompt = f"""
@@ -130,20 +138,29 @@ def generate_recipe(ingredients, diet, cuisine, meal_type, skill_level="Any", to
         st.error(f"⚠️ Recipe generation failed: {str(e)}")
         return None
 
+# --- PDF Generation Function ---
 def recipe_to_pdf(recipe_name, recipe_text):
+    import unicodedata
+    def to_latin1(text):
+        # Normalize and encode to latin1, replacing unencodable chars
+        return unicodedata.normalize('NFKD', text).encode('latin1', 'replace').decode('latin1')
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, recipe_name, ln=True)
+    safe_name = to_latin1(recipe_name)
+    pdf.cell(0, 10, safe_name, ln=True)
     pdf.set_font("Arial", "", 12)
     for line in recipe_text.split('\n'):
-        pdf.multi_cell(0, 8, line)
+        safe_line = to_latin1(line)
+        pdf.multi_cell(0, 8, safe_line)
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     return io.BytesIO(pdf_bytes)
 
 # --- Recipe History File Handling ---
 HISTORY_FILE = "recipe_history.json"
+
+# Load and save recipe history from/to a JSON file
 
 def load_recipe_history():
     if os.path.exists(HISTORY_FILE):
@@ -154,6 +171,7 @@ def load_recipe_history():
             return []
     return []
 
+# Save the recipe history to a JSON file
 def save_recipe_history(history):
     try:
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
@@ -165,6 +183,18 @@ def save_recipe_history(history):
 st.set_page_config(page_title="AI Chef - Recipe Generator", page_icon="🧑‍🍳", layout="wide")
 st.title("🧑‍🍳 AI Chef - Recipe Generator")
 st.markdown("Let AI craft a unique recipe based on your ingredients and preferences!")
+
+# Add language selection for viewing 
+view_languages = {
+    "Original": "original",
+    "English": "en",
+    "Spanish": "es",
+    "French": "fr",
+    "German": "de",
+    "Chinese": "zh-cn",
+}
+view_language = st.selectbox("View Recipe In", list(view_languages.keys()), index=0)
+view_lang_code = view_languages[view_language]
 
 # Initialize session state variables
 # Removed: viewing_recipe_id
@@ -193,13 +223,13 @@ with st.sidebar:
             index=0,
             help="What type of meal are you preparing?"
         )
-        # Cuisine input: allow user to type their own cuisine
-        cuisine_input_val = st.text_input(
+        cuisine_input_val = st.selectbox(
             "Cuisine Style",
-            placeholder="e.g., Italian, Indian, Peruvian, Fusion, etc.",
-            help="Type any cuisine style you want. Leave blank for 'Any'."
+            [
+                "Any", "Italian", "Indian", "Pakistani", "Pakistani (Traditional)", "Mexican", "Chinese", "Mediterranean", "Thai", "Japanese", "French", "American", "Fusion"
+            ],
+            help="Select a preferred cuisine style, or 'Any' for flexibility."
         )
-        cuisine_final_val = cuisine_input_val.strip() if cuisine_input_val.strip() else "Any"
         diet_input_val = st.selectbox(
             "Dietary Preference",
             ["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto", "Paleo", "Dairy-Free", "Low-Carb", "Pescatarian"],
@@ -217,7 +247,14 @@ with st.sidebar:
             placeholder="e.g., 30, 45, 60",
             help="Specify a maximum total cooking time in minutes, or leave blank for no limit."
         )
-
+        # --- Language Selection for Generation ---
+        language_options = ["Any (auto-detect)", "English", "Spanish", "French", "German", "Chinese"]
+        selected_language = st.selectbox(
+            "Recipe Language",
+            language_options,
+            index=0,
+            help="Choose the language for recipe generation."
+        )
         # Error handling for total_time_input_val
         invalid_time = False
         if total_time_input_val.strip():
@@ -254,6 +291,18 @@ with st.sidebar:
 # --- Main Area for Displaying Recipes ---
 main_placeholder = st.empty() # Use a placeholder for dynamic content switching
 
+# Translation function
+def translate_text(text, dest_language_code):
+    if dest_language_code == 'original' or dest_language_code == 'any':
+        return text
+    translator = Translator()
+    try:
+        translated = translator.translate(text, dest=dest_language_code)
+        return translated.text
+    except Exception as e:
+        st.warning(f"Translation failed: {e}")
+        return text
+
 if submitted and not invalid_time:
     # A new recipe generation was submitted
     with main_placeholder.container():
@@ -265,26 +314,26 @@ if submitted and not invalid_time:
             st.session_state.last_generated_inputs = None
         else:
             with st.spinner("🧑‍🍳 Chef is whisking up your recipe... This might take a moment!"):
+                language_instruction = ""
+                if selected_language != "Any (auto-detect)":
+                    language_instruction = f"Please write the recipe in {selected_language}.\n"
                 generated_text = generate_recipe(
-                    ingredients_input_val,
+                    language_instruction + ingredients_input_val,
                     diet_input_val,
-                    cuisine_final_val,
+                    cuisine_input_val,
                     meal_type_input_val,
                     skill_level_input_val,
                     total_time_input_val
                 )
-
             st.session_state.current_generated_recipe_text = generated_text
             st.session_state.last_generated_inputs = {
                 "ingredients": ingredients_input_val,
                 "meal_type": meal_type_input_val,
-                "cuisine": cuisine_final_val,
+                "cuisine": cuisine_input_val,
                 "diet": diet_input_val,
                 "skill_level": skill_level_input_val,
                 "total_time": total_time_input_val
             } if generated_text else None
-
-            # Add to recipe history if generated
             if generated_text:
                 recipe_name = extract_recipe_name(generated_text)
                 st.session_state.recipe_history.append({
@@ -293,32 +342,33 @@ if submitted and not invalid_time:
                     'inputs': {
                         'ingredients': ingredients_input_val,
                         'meal_type': meal_type_input_val,
-                        'cuisine': cuisine_final_val,
+                        'cuisine': cuisine_input_val,
                         'diet': diet_input_val,
                         'skill_level': skill_level_input_val,
                         'total_time': total_time_input_val
                     }
                 })
-                save_recipe_history(st.session_state.recipe_history) # Save updated history to file
+                save_recipe_history(st.session_state.recipe_history)
                 st.success("🎉 Your custom recipe is ready!")
-
                 st.subheader(f"✨ Your Custom Recipe: {recipe_name}")
                 st.markdown(f"**Generated for:** Ingredients: `{ingredients_input_val}`, Meal: `{meal_type_input_val}`, Cuisine: `{cuisine_input_val}`, Diet: `{diet_input_val}`, Skill: `{skill_level_input_val}`, Max Time: `{total_time_input_val or 'Any'}` minutes")
                 st.markdown("---")
-                st.markdown(generated_text)
-
+                display_text = generated_text
+                if view_lang_code != "original":
+                    display_text = translate_text(generated_text, view_lang_code)
+                st.markdown(display_text)
                 # --- Export/Download Buttons ---
                 st.markdown("#### 📤 Export Recipe")
                 col_txt, col_pdf = st.columns(2)
                 with col_txt:
                     st.download_button(
                         label="💾 Download as .txt",
-                        data=generated_text,
+                        data=display_text,
                         file_name=f"{recipe_name}.txt",
                         mime="text/plain"
                     )
                 with col_pdf:
-                    pdf_bytes = recipe_to_pdf(recipe_name, generated_text)
+                    pdf_bytes = recipe_to_pdf(recipe_name, display_text)
                     st.download_button(
                         label="📄 Download as PDF",
                         data=pdf_bytes,
@@ -326,36 +376,38 @@ if submitted and not invalid_time:
                         mime="application/pdf"
                     )
             else:
-                if ingredients_input_val.strip(): # Only show error if user actually put ingredients
-                     st.error("💥 Oops! Failed to generate a recipe. Please check error messages above or try adjusting your inputs.")
-                st.session_state.last_generated_inputs = None # Clear if generation failed
-
+                if ingredients_input_val.strip():
+                    st.error("💥 Oops! Failed to generate a recipe. Please check error messages above or try adjusting your inputs.")
+                st.session_state.last_generated_inputs = None
 elif st.session_state.selected_history_index is not None:
     # Display a recipe from history if selected
     with main_placeholder.container():
         recipe = st.session_state.recipe_history[st.session_state.selected_history_index]
-        st.subheader(f"✨ Your Custom Recipe: {recipe['name']}")
+        recipe_name = recipe['name']
+        st.subheader(f"✨ Your Custom Recipe: {recipe_name}")
         inputs = recipe['inputs']
         st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
         st.markdown("---")
-        st.markdown(recipe['text'])
-
+        display_text = recipe['text']
+        if view_lang_code != "original":
+            display_text = translate_text(recipe['text'], view_lang_code)
+        st.markdown(display_text)
         # --- Export/Download Buttons ---
         st.markdown("#### 📤 Export Recipe")
         col_txt, col_pdf = st.columns(2)
         with col_txt:
             st.download_button(
                 label="💾 Download as .txt",
-                data=recipe['text'],
-                file_name=f"{recipe['name']}.txt",
+                data=display_text,
+                file_name=f"{recipe_name}.txt",
                 mime="text/plain"
             )
         with col_pdf:
-            pdf_bytes = recipe_to_pdf(recipe['name'], recipe['text'])
+            pdf_bytes = recipe_to_pdf(recipe_name, display_text)
             st.download_button(
                 label="📄 Download as PDF",
                 data=pdf_bytes,
-                file_name=f"{recipe['name']}.pdf",
+                file_name=f"{recipe_name}.pdf",
                 mime="application/pdf"
             )
 elif st.session_state.current_generated_recipe_text:
@@ -367,20 +419,22 @@ elif st.session_state.current_generated_recipe_text:
             inputs = st.session_state.last_generated_inputs
             st.markdown(f"**Generated for:** Ingredients: `{inputs['ingredients']}`, Meal: `{inputs['meal_type']}`, Cuisine: `{inputs['cuisine']}`, Diet: `{inputs['diet']}`")
         st.markdown("---")
-        st.markdown(st.session_state.current_generated_recipe_text)
-
+        display_text = st.session_state.current_generated_recipe_text
+        if view_lang_code != "original":
+            display_text = translate_text(st.session_state.current_generated_recipe_text, view_lang_code)
+        st.markdown(display_text)
         # --- Export/Download Buttons ---
         st.markdown("#### 📤 Export Recipe")
         col_txt, col_pdf = st.columns(2)
         with col_txt:
             st.download_button(
                 label="💾 Download as .txt",
-                data=st.session_state.current_generated_recipe_text,
+                data=display_text,
                 file_name=f"{recipe_name}.txt",
                 mime="text/plain"
             )
         with col_pdf:
-            pdf_bytes = recipe_to_pdf(recipe_name, st.session_state.current_generated_recipe_text)
+            pdf_bytes = recipe_to_pdf(recipe_name, display_text)
             st.download_button(
                 label="📄 Download as PDF",
                 data=pdf_bytes,
