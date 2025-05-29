@@ -140,21 +140,22 @@ def generate_recipe(ingredients, diet, cuisine, meal_type, skill_level="Any", to
 
 # --- PDF Generation Function ---
 def recipe_to_pdf(recipe_name, recipe_text):
-    import unicodedata
-    def to_latin1(text):
-        # Normalize and encode to latin1, replacing unencodable chars
-        return unicodedata.normalize('NFKD', text).encode('latin1', 'replace').decode('latin1')
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", "B", 16)
-    safe_name = to_latin1(recipe_name)
-    pdf.cell(0, 10, safe_name, ln=True)
-    pdf.set_font("Arial", "", 12)
+    # Add a Unicode font (DejaVuSans.ttf must be in the project directory)
+    font_path = os.path.join(os.path.dirname(__file__), "DejaVuSans.ttf")
+    if not os.path.exists(font_path):
+        st.error("DejaVuSans.ttf font file not found in the project directory. Please download it from https://dejavu-fonts.github.io/ and place it in the app directory for full Unicode PDF support.")
+        return io.BytesIO(b"")
+    pdf.add_font("DejaVu", "", font_path, uni=True)
+    pdf.set_font("DejaVu", "", 16)
+    pdf.cell(0, 10, recipe_name, ln=True)
+    pdf.set_font("DejaVu", "", 12)
     for line in recipe_text.split('\n'):
-        safe_line = to_latin1(line)
-        pdf.multi_cell(0, 8, safe_line)
-    pdf_bytes = pdf.output(dest='S').encode('latin1')
+        pdf.multi_cell(0, 8, line)
+    # Output as raw bytes (no encoding) for full Unicode support
+    pdf_bytes = pdf.output(dest='S').encode('latin1', 'ignore')
     return io.BytesIO(pdf_bytes)
 
 # --- Recipe History File Handling ---
@@ -191,7 +192,6 @@ view_languages = {
     "Spanish": "es",
     "French": "fr",
     "German": "de",
-    "Chinese": "zh-cn",
 }
 view_language = st.selectbox("View Recipe In", list(view_languages.keys()), index=0)
 view_lang_code = view_languages[view_language]
