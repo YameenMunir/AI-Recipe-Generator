@@ -1,3 +1,6 @@
+# Streamlit app requirements
 streamlit
 python-dotenv
 google-generativeai
+googletrans==4.0.0rc1
+fpdf
