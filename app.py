@@ -264,28 +264,61 @@ with st.sidebar:
 
         submitted = st.form_submit_button("✨ Generate Recipe", type="primary", use_container_width=True)
 
-    # --- Recipe History Section ---
+    # --- Recipe History Section with Advanced Filtering and Search ---
     st.markdown("---")
     st.header("📜 Recipe History")
-    if st.session_state.recipe_history:
-        for idx, recipe in enumerate(reversed(st.session_state.recipe_history)):
-            display_idx = len(st.session_state.recipe_history) - 1 - idx
+    # Filtering/search UI
+    with st.expander("🔍 Filter & Search History", expanded=False):
+        with st.form("history_filter_form"):
+            search_query = st.text_input("Search by keyword (name, ingredient, cuisine, etc.)", "", key="history_search")
+            filter_meal = st.selectbox("Filter by Meal Type", ["All"] + sorted(list(set(r['inputs']['meal_type'] for r in st.session_state.recipe_history))), key="filter_meal")
+            filter_cuisine = st.text_input("Filter by Cuisine (partial match)", "", key="filter_cuisine")
+            filter_diet = st.selectbox("Filter by Diet", ["All"] + sorted(list(set(r['inputs']['diet'] for r in st.session_state.recipe_history))), key="filter_diet")
+            filter_submitted = st.form_submit_button("Apply Filter/Search")
+
+    # Only apply filters if the form is submitted, otherwise show all
+    filtered_history = st.session_state.recipe_history
+    if 'filter_applied' not in st.session_state:
+        st.session_state.filter_applied = False
+    if filter_submitted:
+        st.session_state.filter_applied = True
+        st.session_state.last_search_query = search_query
+        st.session_state.last_filter_meal = filter_meal
+        st.session_state.last_filter_cuisine = filter_cuisine
+        st.session_state.last_filter_diet = filter_diet
+    if st.session_state.filter_applied:
+        search_query = st.session_state.last_search_query
+        filter_meal = st.session_state.last_filter_meal
+        filter_cuisine = st.session_state.last_filter_cuisine
+        filter_diet = st.session_state.last_filter_diet
+        if search_query.strip():
+            sq = search_query.lower()
+            filtered_history = [r for r in filtered_history if sq in r['name'].lower() or sq in r['text'].lower() or sq in r['inputs']['ingredients'].lower() or sq in r['inputs']['cuisine'].lower()]
+        if filter_meal != "All":
+            filtered_history = [r for r in filtered_history if r['inputs']['meal_type'] == filter_meal]
+        if filter_cuisine.strip():
+            fc = filter_cuisine.lower()
+            filtered_history = [r for r in filtered_history if fc in r['inputs']['cuisine'].lower()]
+        if filter_diet != "All":
+            filtered_history = [r for r in filtered_history if r['inputs']['diet'] == filter_diet]
+
+    if filtered_history:
+        for idx, recipe in enumerate(reversed(filtered_history)):
+            display_idx = len(filtered_history) - 1 - idx
             label = recipe['name'] if recipe['name'] else f"Recipe {display_idx+1}"
             col1, col2 = st.columns([4,1])
             with col1:
                 if st.button(label, key=f"history_{display_idx}"):
-                    st.session_state.selected_history_index = display_idx
+                    st.session_state.selected_history_index = st.session_state.recipe_history.index(recipe)
             with col2:
                 if st.button("🗑️", key=f"delete_{display_idx}"):
                     # Remove the recipe from history
-                    del st.session_state.recipe_history[display_idx]
+                    del st.session_state.recipe_history[st.session_state.recipe_history.index(recipe)]
                     save_recipe_history(st.session_state.recipe_history)
-                    # If the deleted recipe was selected, clear selection
-                    if st.session_state.selected_history_index == display_idx:
-                        st.session_state.selected_history_index = None
+                    st.session_state.selected_history_index = None
                     st.rerun()
     else:
-        st.caption("No recipes generated yet this session.")
+        st.caption("No recipes match your search/filter.")
         
 
 # --- Main Area for Displaying Recipes ---
