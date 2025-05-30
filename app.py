@@ -248,7 +248,7 @@ with st.sidebar:
             help="Specify a maximum total cooking time in minutes, or leave blank for no limit."
         )
         # --- Language Selection for Generation ---
-        language_options = ["Any (auto-detect)", "English", "Spanish", "French", "German", "Chinese"]
+        language_options = ["Any (auto-detect)", "English", "Spanish", "French", "German"]
         selected_language = st.selectbox(
             "Recipe Language",
             language_options,
