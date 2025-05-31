@@ -267,12 +267,14 @@ if submitted and not invalid_time:
                 st.markdown("---")
                 display_text = generated_text
                 if view_lang_code != "original":
-                    display_text = translate_text(generated_text, view_lang_code)
+                    with st.spinner("Translating..."):
+                        display_text = translate_text(generated_text, view_lang_code)
                 st.markdown(display_text)
                 # --- Nutritional Analysis ---
                 st.markdown("#### 🥗 Nutritional Analysis (AI Estimated)")
                 nutrition_lang = view_lang_code if view_lang_code != "original" else "en"
-                nutrition = get_nutritional_analysis(model, ingredients_input_val, language=nutrition_lang)
+                with st.spinner("Analyzing nutrition..."):
+                    nutrition = get_nutritional_analysis(model, ingredients_input_val, language=nutrition_lang)
                 st.markdown(nutrition)
                 # --- Export/Download Buttons ---
                 st.markdown("#### 📤 Export Recipe")
@@ -307,12 +309,14 @@ elif st.session_state.selected_history_index is not None:
         st.markdown("---")
         display_text = recipe['text']
         if view_lang_code != "original":
-            display_text = translate_text(recipe['text'], view_lang_code)
+            with st.spinner("Translating..."):
+                display_text = translate_text(recipe['text'], view_lang_code)
         st.markdown(display_text)
         # --- Nutritional Analysis for History ---
         st.markdown("#### 🥗 Nutritional Analysis (AI Estimated)")
         nutrition_lang = view_lang_code if view_lang_code != "original" else "en"
-        nutrition = get_nutritional_analysis(model, inputs['ingredients'], language=nutrition_lang)
+        with st.spinner("Analyzing nutrition..."):
+            nutrition = get_nutritional_analysis(model, inputs['ingredients'], language=nutrition_lang)
         st.markdown(nutrition)
         # --- Export/Download Buttons ---
         st.markdown("#### 📤 Export Recipe")
@@ -343,7 +347,8 @@ elif st.session_state.current_generated_recipe_text:
         st.markdown("---")
         display_text = st.session_state.current_generated_recipe_text
         if view_lang_code != "original":
-            display_text = translate_text(st.session_state.current_generated_recipe_text, view_lang_code)
+            with st.spinner("Translating..."):
+                display_text = translate_text(st.session_state.current_generated_recipe_text, view_lang_code)
         st.markdown(display_text)
         # --- Export/Download Buttons ---
         st.markdown("#### 📤 Export Recipe")
