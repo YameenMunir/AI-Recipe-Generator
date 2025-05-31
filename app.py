@@ -150,6 +150,13 @@ with st.sidebar:
     # --- Recipe History Section with Advanced Filtering and Search ---
     st.markdown("---")
     st.header("📜 Recipe History")
+    # --- Clear History Button ---
+    if st.button("🗑 Clear All History", key="clear_all_history"):
+        st.session_state.recipe_history = []
+        save_recipe_history([])
+        st.session_state.selected_history_index = None
+        st.success("Recipe history cleared!")
+        st.rerun()
     # Filtering/search UI
     with st.expander("🔍 Filter & Search History", expanded=False):
         with st.form("history_filter_form"):
