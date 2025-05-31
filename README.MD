@@ -73,20 +73,20 @@ This Streamlit application allows users to generate custom recipes based on ingr
 
 ## Project Structure
 
-The application is primarily contained within a single Python script (`app.py` or similar).
+The application is modular, with logic separated into multiple Python scripts for maintainability and clarity:
 
-- **AI Configuration & Generation (`generate_recipe`):**
-  - Loads the `GEMINI_API_KEY` from a `.env` file.
-  - Configures the `google.generativeai` client.
-  - Constructs a detailed prompt for the Gemini model based on user inputs.
-  - Handles API responses and potential errors during generation.
-- **Recipe Name Extraction (`extract_recipe_name`):**
-  - A utility function to parse the AI-generated text and extract a suitable recipe name, looking for specific prefixes like "CREATIVE RECIPE NAME:".
-- **Streamlit UI:**
-  - Sets up the page configuration, title, and main layout.
-  - Uses `st.sidebar` for input forms.
-  - Uses `st.empty()` and `st.container()` for dynamically updating the main content area to display either a newly generated recipe or a welcome message.
-  - Manages application flow and display logic using `st.session_state`.
+- `app.py`: Main Streamlit entry point and UI logic. Imports all other modules.
+- `recipe_generation.py`: Gemini AI configuration and recipe generation logic.
+- `pdf_utils.py`: PDF export logic (Unicode, multi-language support).
+- `translation_utils.py`: Translation logic for multi-language support.
+- `nutrition_utils.py`: AI-powered nutritional analysis logic.
+- `history_utils.py`: Load/save recipe history logic.
+- `requirements.txt`, `README.MD`, `DejaVuSans.ttf`: Dependencies, documentation, and font for Unicode PDF export.
+- `recipe_history.json`: User recipe data (not committed to git).
+
+### How the modules work together
+- `app.py` handles all UI and user interaction, calling functions from the other modules as needed.
+- Each feature (recipe generation, PDF export, translation, nutrition, history) is implemented in its own file for modularity.
 
 ## Setup and Installation
 
