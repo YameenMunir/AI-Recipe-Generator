@@ -109,6 +109,7 @@ The application is primarily contained within a single Python script (`app.py` o
    streamlit
    python-dotenv
    google-generativeai
+   googletrans==4.0.0-rc1
    ```
    Then install:
    ```bash
