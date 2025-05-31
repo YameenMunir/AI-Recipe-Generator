@@ -106,24 +106,13 @@ with st.sidebar:
             index=0,
             help="What type of meal are you preparing?"
         )
-        cuisine_options = [
-            "Any", "Italian", "Indian", "Pakistani", "Pakistani (Traditional)", "Mexican", "Chinese", "Mediterranean", "Thai", "Japanese", "French", "American", "Fusion"
-        ]
-        cuisine_input_val = st.selectbox(
-            "Cuisine Style",
-            cuisine_options,
-            help="Select a preferred cuisine style, or 'Any' for flexibility. You can also type your own cuisine.",
-            key="cuisine_selectbox"
-        )
-        # Allow user to type a custom cuisine
-        custom_cuisine = st.text_input(
-            "Or type your own cuisine style",
-            value="" if cuisine_input_val == "Any" else cuisine_input_val if cuisine_input_val not in cuisine_options else "",
+        # Remove cuisine_options and selectbox, only allow user to type their own cuisine
+        cuisine_input_val = st.text_input(
+            "Cuisine Style (type any cuisine)",
+            value="",
             key="custom_cuisine_input",
-            help="Type any cuisine style not listed above. This will override the selection above if filled."
+            help="Type any cuisine style you want (e.g., Italian, Fusion, Street Food, etc.). Leave blank for no preference."
         )
-        if custom_cuisine.strip():
-            cuisine_input_val = custom_cuisine.strip()
         diet_input_val = st.selectbox(
             "Dietary Preference",
             ["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto", "Paleo", "Dairy-Free", "Low-Carb", "Pescatarian"],
