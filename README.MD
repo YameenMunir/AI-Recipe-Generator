@@ -30,6 +30,47 @@ This Streamlit application allows users to generate custom recipes based on ingr
   - Each recipe in the history has a delete (🗑️) button next to it. Clicking this button will permanently remove the recipe from the history and update the file.
   - You can click a recipe name to view it again in the main area.
 
+## 🌍 Multi-Language Support
+
+- **Recipe Language Selection:** Choose the language for recipe generation (English, Spanish, French, German, and more coming soon).
+- **View/Export in Any Language:** Instantly translate and view/export recipes in your preferred language, including Urdu, Hindi, and Chinese.
+- **Unicode PDF Export:** All recipe text (including CJK, Urdu, Hindi, etc.) is exported to PDF using the included DejaVuSans.ttf font for full Unicode support.
+- **Font Setup:**
+  - The app requires `DejaVuSans.ttf` in the project directory for Unicode PDF export. Download it from [dejavu-fonts.github.io](https://dejavu-fonts.github.io/) if not present.
+
+## 🥗 AI-Powered Nutritional Analysis
+
+- **Automatic Nutrition Info:** Each recipe includes an AI-estimated nutritional breakdown (calories, protein, fat, carbs, fiber, sugar, sodium, cholesterol, etc.).
+- **Multi-Language Nutrition:** Nutritional analysis is provided in your selected language.
+- **History Nutrition:** View nutrition info for any recipe in your history.
+
+## 📤 Export & History Features
+
+- **Download as PDF or TXT:** Recipes can be exported in any language, with correct Unicode rendering in PDFs.
+- **Recipe History:**
+  - All recipes are saved in `recipe_history.json` (not committed to git).
+  - Advanced filtering and search by name, ingredient, cuisine, meal type, or diet.
+  - Delete recipes from history with one click.
+
+## ⚠️ Error Handling & Dependencies
+
+- **Translation/Nutrition Fallbacks:** If translation or nutrition analysis fails, the app displays a warning and continues gracefully.
+- **Dependencies:**
+  - `googletrans==4.0.0-rc1` for translation
+  - `fpdf` for PDF export
+  - `DejaVuSans.ttf` for Unicode PDF support
+
+## 🛠️ Development & Contribution
+
+- **Branch Naming:**
+  - For multi-language and PDF features: `feature/multilang-unicode-pdf-export`
+  - For nutrition features: `feature/nutritional-analysis-multilang-pdf`
+- **Commit Messages:**
+  - Use short, descriptive messages (e.g., `add nutritional analysis to PDF export`, `fix Unicode PDF for Chinese`)
+- **Files to Commit:**
+  - `app.py`, `requirements.txt`, `README.MD`
+  - Do **not** commit: `recipe_history.json`, font cache files (`DejaVuSans.cw127.pkl`, `DejaVuSans.pkl`)
+
 ## Project Structure
 
 The application is primarily contained within a single Python script (`app.py` or similar).
@@ -150,12 +191,8 @@ The application is primarily contained within a single Python script (`app.py` o
 - Integrate an alternative image generation API (e.g., Stable Diffusion via Replicate or Hugging Face) for recipe images.
 - Add user authentication and personal recipe collections.
 - Enable sharing recipes via social media or email.
-- Add nutritional analysis for generated recipes.
-- Support for multi-language recipe generation.
 - Allow users to rate and comment on generated recipes.
 - Add a shopping list generator based on recipe ingredients.
-- Implement advanced filtering and search in recipe history.
-
 ---
 
 This README provides an overview of the AI Recipe Generator. Feel free to adjust any details to better match your specific implementation.
