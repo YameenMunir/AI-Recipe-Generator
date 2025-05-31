@@ -71,22 +71,40 @@ This Streamlit application allows users to generate custom recipes based on ingr
   - `app.py`, `requirements.txt`, `README.MD`
   - Do **not** commit: `recipe_history.json`, font cache files (`DejaVuSans.cw127.pkl`, `DejaVuSans.pkl`)
 
-## Project Structure
+## 📁 Project Structure
 
-The application is modular, with logic separated into multiple Python scripts for maintainability and clarity:
+```
+AI-Recipe-Generator/
+│
+├── app.py                # Main Streamlit app and UI logic
+├── recipe_generation.py  # Gemini AI recipe generation logic
+├── recipe_utils.py       # Helper functions for recipe formatting/processing
+├── nutrition_utils.py    # AI-powered nutrition analysis
+├── pdf_utils.py          # Unicode PDF export (multi-language)
+├── translation_utils.py  # Recipe translation functions
+├── history_utils.py      # Recipe history load/save/delete
+│
+├── recipe_history.json   # Stores all generated recipes (not in git)
+├── requirements.txt      # Python dependencies
+├── README.MD             # Project documentation
+├── DejaVuSans.ttf        # Font for Unicode PDF export
+├── DejaVuSans.cw127.pkl  # Font cache (auto-generated)
+├── DejaVuSans.pkl        # Font cache (auto-generated)
+└── __pycache__/          # Python bytecode cache
+```
 
-- `app.py`: Main Streamlit entry point and UI logic. Imports all other modules.
-- `recipe_generation.py`: Gemini AI configuration and recipe generation logic.
-- `pdf_utils.py`: PDF export logic (Unicode, multi-language support).
-- `translation_utils.py`: Translation logic for multi-language support.
-- `nutrition_utils.py`: AI-powered nutritional analysis logic.
-- `history_utils.py`: Load/save recipe history logic.
-- `requirements.txt`, `README.MD`, `DejaVuSans.ttf`: Dependencies, documentation, and font for Unicode PDF export.
-- `recipe_history.json`: User recipe data (not committed to git).
-
-### How the modules work together
-- `app.py` handles all UI and user interaction, calling functions from the other modules as needed.
-- Each feature (recipe generation, PDF export, translation, nutrition, history) is implemented in its own file for modularity.
+### Module Overview
+- **app.py**: Main Streamlit entry point and UI logic. Handles user interaction and calls functions from other modules.
+- **recipe_generation.py**: Connects to Gemini AI and generates recipes based on user input.
+- **recipe_utils.py**: Formats and processes recipe data for display and export.
+- **nutrition_utils.py**: Analyzes recipes for nutrition info using AI.
+- **pdf_utils.py**: Exports recipes to PDF with full Unicode support for all languages.
+- **translation_utils.py**: Translates recipes and nutrition info to supported languages.
+- **history_utils.py**: Manages recipe history (save, load, delete) in `recipe_history.json`.
+- **recipe_history.json**: Stores all generated recipes (auto-created, not versioned).
+- **DejaVuSans.ttf**: Required for Unicode PDF export (download from [dejavu-fonts.github.io](https://dejavu-fonts.github.io/)).
+- **DejaVuSans.cw127.pkl**, **DejaVuSans.pkl**: Font cache files (auto-generated, not versioned).
+- **__pycache__/**: Python bytecode cache directory.
 
 ## Setup and Installation
 
@@ -140,7 +158,7 @@ The application is modular, with logic separated into multiple Python scripts fo
    - Create a file named `.env` in the root directory of your project (if it does not already exist).
    - Add the following line to your `.env` file, replacing `YOUR_ACTUAL_GEMINI_API_KEY` with your real Gemini API key:
      ```env
-     GEMINI_API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
+     GEMINI_API_KEY="YOUR ACTUAL GEMINI API KEY"
      ```
    - **Note:** You must have a valid Gemini API key from Google. If you do not have one, visit the [Google AI Studio](https://aistudio.google.com/app/apikey) to generate your key.
    - Make sure `.env` is listed in your `.gitignore` so your API key is not committed to version control.
@@ -167,33 +185,4 @@ The application is modular, with logic separated into multiple Python scripts fo
 
 - The application requires a valid Google Gemini API key to function.
 - You can obtain your API key from the [Google AI Studio API Key page](https://aistudio.google.com/app/apikey).
-- Place your API key in a `.env` file as described above.
-- If the key is missing or invalid, the app will display an error and stop.
-
-
-
-## Files
-
-- `app.py` (or your main script name): Contains all the Python code for the Streamlit application and AI interaction.
-- `.env`: Stores your `GEMINI_API_KEY` (should be in `.gitignore`).
-- `.gitignore`: Specifies intentionally untracked files that Git should ignore.
-- `README.md`: This file.
-- `requirements.txt` (optional but recommended): Lists project dependencies.
-
-## Recipe History and Deletion
-
-- All generated recipes are saved in a file called `recipe_history.json`.
-- The sidebar displays your recipe history for the current session and from this file.
-- To delete a recipe, click the 🗑️ button next to it in the sidebar. The recipe will be removed from both the session and the file.
-- If you delete a recipe that is currently being viewed, the selection will be cleared.
-
-## Potential Future Enhancements
-
-- Integrate an alternative image generation API (e.g., Stable Diffusion via Replicate or Hugging Face) for recipe images.
-- Add user authentication and personal recipe collections.
-- Enable sharing recipes via social media or email.
-- Allow users to rate and comment on generated recipes.
-- Add a shopping list generator based on recipe ingredients.
----
-
-This README provides an overview of the AI Recipe Generator. Feel free to adjust any details to better match your specific implementation.
+- Place
