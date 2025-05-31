@@ -77,12 +77,13 @@ This Streamlit application allows users to generate custom recipes based on ingr
 AI-Recipe-Generator/
 │
 ├── app.py                # Main Streamlit app and UI logic
-├── recipe_generation.py  # Gemini AI recipe generation logic
-├── recipe_utils.py       # Helper functions for recipe formatting/processing
-├── nutrition_utils.py    # AI-powered nutrition analysis
-├── pdf_utils.py          # Unicode PDF export (multi-language)
-├── translation_utils.py  # Recipe translation functions
-├── history_utils.py      # Recipe history load/save/delete
+├── src/                  # Source directory for utility modules
+│   ├── recipe_generation.py  # Gemini AI recipe generation logic
+│   ├── recipe_utils.py       # Helper functions for recipe formatting/processing
+│   ├── nutrition_utils.py    # AI-powered nutrition analysis
+│   ├── pdf_utils.py          # Unicode PDF export (multi-language)
+│   ├── translation_utils.py  # Recipe translation functions
+│   └── history_utils.py      # Recipe history load/save/delete
 │
 ├── recipe_history.json   # Stores all generated recipes (not in git)
 ├── requirements.txt      # Python dependencies
@@ -95,12 +96,12 @@ AI-Recipe-Generator/
 
 ### Module Overview
 - **app.py**: Main Streamlit entry point and UI logic. Handles user interaction and calls functions from other modules.
-- **recipe_generation.py**: Connects to Gemini AI and generates recipes based on user input.
-- **recipe_utils.py**: Formats and processes recipe data for display and export.
-- **nutrition_utils.py**: Analyzes recipes for nutrition info using AI.
-- **pdf_utils.py**: Exports recipes to PDF with full Unicode support for all languages.
-- **translation_utils.py**: Translates recipes and nutrition info to supported languages.
-- **history_utils.py**: Manages recipe history (save, load, delete) in `recipe_history.json`.
+- **src/recipe_generation.py**: Connects to Gemini AI and generates recipes based on user input.
+- **src/recipe_utils.py**: Formats and processes recipe data for display and export.
+- **src/nutrition_utils.py**: Analyzes recipes for nutrition info using AI.
+- **src/pdf_utils.py**: Exports recipes to PDF with full Unicode support for all languages.
+- **src/translation_utils.py**: Translates recipes and nutrition info to supported languages.
+- **src/history_utils.py**: Manages recipe history (save, load, delete) in `recipe_history.json`.
 - **recipe_history.json**: Stores all generated recipes (auto-created, not versioned).
 - **DejaVuSans.ttf**: Required for Unicode PDF export (download from [dejavu-fonts.github.io](https://dejavu-fonts.github.io/)).
 - **DejaVuSans.cw127.pkl**, **DejaVuSans.pkl**: Font cache files (auto-generated, not versioned).

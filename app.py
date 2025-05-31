@@ -9,11 +9,11 @@ from fpdf import FPDF
 import googletrans
 from googletrans import Translator
 import unicodedata
-from recipe_generation import configure_gemini, generate_recipe
-from pdf_utils import recipe_to_pdf
-from translation_utils import translate_text
-from nutrition_utils import get_nutritional_analysis
-from history_utils import load_recipe_history, save_recipe_history
+from src.recipe_generation import configure_gemini, generate_recipe
+from src.pdf_utils import recipe_to_pdf
+from src.translation_utils import translate_text
+from src.nutrition_utils import get_nutritional_analysis
+from src.history_utils import load_recipe_history, save_recipe_history
 
 # Initialize the Google Generative AI client
 def extract_recipe_name(recipe_text):

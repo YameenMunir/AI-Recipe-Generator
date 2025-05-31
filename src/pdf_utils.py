@@ -7,9 +7,9 @@ def recipe_to_pdf(recipe_name, recipe_text):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
-    font_path = os.path.join(os.path.dirname(__file__), "DejaVuSans.ttf")
+    font_path = os.path.join(os.path.dirname(__file__), "..", "DejaVuSans.ttf")
     if not os.path.exists(font_path):
-        st.error("DejaVuSans.ttf font file not found in the project directory. Please download it from https://dejavu-fonts.github.io/ and place it in the app directory for full Unicode PDF support.")
+        st.error("DejaVuSans.ttf font file not found in the project root directory. Please download it from https://dejavu-fonts.github.io/ and place it in the project root for full Unicode PDF support.")
         return io.BytesIO(b"")
     pdf.add_font("DejaVu", "", font_path, uni=True)
     pdf.set_font("DejaVu", "", 16)
