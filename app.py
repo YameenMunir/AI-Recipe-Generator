@@ -9,6 +9,11 @@ from fpdf import FPDF
 import googletrans
 from googletrans import Translator
 import unicodedata
+from recipe_generation import configure_gemini, generate_recipe
+from pdf_utils import recipe_to_pdf
+from translation_utils import translate_text
+from nutrition_utils import get_nutritional_analysis
+from history_utils import load_recipe_history, save_recipe_history
 
 # Initialize the Google Generative AI client
 def extract_recipe_name(recipe_text):
@@ -55,130 +60,8 @@ def extract_recipe_name(recipe_text):
 
     return "Untitled Recipe" # Fallback if no suitable name found
 
-
-
 # --- AI Configuration ---
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-
-if not api_key:
-    st.error("❌ GEMINI_API_KEY not found in .env file. Please add your valid API key.")
-    st.stop()
-
-try:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name='gemini-1.5-flash-latest')
-except Exception as e:
-    st.error(f"🚨 Failed to configure Gemini: {str(e)}")
-    st.error("Please ensure your API key is correct and has the Gemini API enabled.")
-    st.stop()
-
-# --- Recipe Generation Function ---
-def generate_recipe(ingredients, diet, cuisine, meal_type, skill_level="Any", total_time=""):
-    """Generates a recipe using the Gemini AI model based on user inputs, including skill level and total time."""
-    prompt = f"""
-    Create a detailed {meal_type.lower()} recipe using primarily these ingredients: {ingredients}.
-
-    Requirements:
-    - Diet: {diet if diet != "None" else "No dietary restrictions"}
-    - Cuisine style: {cuisine if cuisine != "Any" else "Any style is acceptable"}
-    - Cooking skill level: {skill_level if skill_level != "Any" else "Any skill level (make it accessible)"}
-    {'- The total time for the recipe (prep + cook) should not exceed ' + total_time + ' minutes.' if total_time.strip() else ''}
-
-    The recipe should include:
-    1. CREATIVE RECIPE NAME (make this appealing and unique)
-    2. A short, enticing DESCRIPTION of the dish (1-2 sentences).
-    3. PREP TIME: (e.g., 15 minutes)
-    4. COOK TIME: (e.g., 30 minutes)
-    5. TOTAL TIME: (Prep + Cook)
-    6. SERVINGS: (e.g., 4 servings)
-    7. INGREDIENTS:
-       - List all ingredients with precise measurements (e.g., 1 cup, 2 tbsp, 100g).
-       - Organize by category if needed (e.g., "For the marinade:", "For the main dish:").
-    8. EQUIPMENT: (Optional: list any special equipment needed, e.g., "9x13 inch baking dish")
-    9. PREPARATION STEPS:
-       - Numbered, clear, concise instructions.
-       - Include cooking temperatures and estimated times for each major step.
-       - Start with preheating oven/preparing pans if necessary.
-    10. SERVING SUGGESTIONS:
-        - How to plate or present the dish.
-        - Recommended side dishes or accompaniments.
-    11. CHEF'S TIPS: (Optional: 1-2 helpful tips, variations, or storage instructions)
-
-    Make the recipe easy to follow for home cooks.
-    Be creative and ensure the recipe sounds delicious!
-    The very first line of your response MUST be "1. CREATIVE RECIPE NAME: [Actual Name Here]". Do not add any other text or numbering before this line.
-    For subsequent sections like "2. DESCRIPTION:", "3. PREP TIME:", etc., also ensure they start on a new line with the number and title.
-    """
-
-    try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.8,
-                "top_p": 0.95,
-                "max_output_tokens": 3500
-            }
-        )
-
-        if not response.text:
-            if response.prompt_feedback and response.prompt_feedback.block_reason:
-                # Try to get a more specific block reason message
-                block_reason_message = "Unknown reason"
-                if hasattr(response.prompt_feedback, 'block_reason_message') and response.prompt_feedback.block_reason_message:
-                    block_reason_message = response.prompt_feedback.block_reason_message
-                elif hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
-                     block_reason_message = response.prompt_feedback.block_reason.name # or str(response.prompt_feedback.block_reason)
-                st.error(f"⚠️ Recipe generation blocked. Reason: {block_reason_message}")
-                return None
-            raise ValueError("Empty response from model.")
-        return response.text
-
-    except Exception as e:
-        st.error(f"⚠️ Recipe generation failed: {str(e)}")
-        return None
-
-# --- PDF Generation Function ---
-def recipe_to_pdf(recipe_name, recipe_text):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    # Add a Unicode font (DejaVuSans.ttf must be in the project directory)
-    font_path = os.path.join(os.path.dirname(__file__), "DejaVuSans.ttf")
-    if not os.path.exists(font_path):
-        st.error("DejaVuSans.ttf font file not found in the project directory. Please download it from https://dejavu-fonts.github.io/ and place it in the app directory for full Unicode PDF support.")
-        return io.BytesIO(b"")
-    pdf.add_font("DejaVu", "", font_path, uni=True)
-    pdf.set_font("DejaVu", "", 16)
-    pdf.cell(0, 10, recipe_name, ln=True)
-    pdf.set_font("DejaVu", "", 12)
-    for line in recipe_text.split('\n'):
-        pdf.multi_cell(0, 8, line)
-    # Output as raw bytes (no encoding) for full Unicode support
-    pdf_bytes = pdf.output(dest='S').encode('latin1', 'ignore')
-    return io.BytesIO(pdf_bytes)
-
-# --- Recipe History File Handling ---
-HISTORY_FILE = "recipe_history.json"
-
-# Load and save recipe history from/to a JSON file
-
-def load_recipe_history():
-    if os.path.exists(HISTORY_FILE):
-        try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return []
-    return []
-
-# Save the recipe history to a JSON file
-def save_recipe_history(history):
-    try:
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(history, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+model = configure_gemini()
 
 # --- Streamlit UI ---
 st.set_page_config(page_title="AI Chef - Recipe Generator", page_icon="🧑‍🍳", layout="wide")
@@ -335,44 +218,6 @@ with st.sidebar:
 # --- Main Area for Displaying Recipes ---
 main_placeholder = st.empty() # Use a placeholder for dynamic content switching
 
-# Translation function
-def translate_text(text, dest_language_code):
-    if dest_language_code == 'original' or dest_language_code == 'any':
-        return text
-    translator = Translator()
-    try:
-        translated = translator.translate(text, dest=dest_language_code)
-        return translated.text
-    except Exception as e:
-        st.warning(f"Translation failed: {e}")
-        return text
-
-def get_nutritional_analysis(ingredients_text, language='en'):
-    """
-    Uses Gemini to estimate nutritional information for the given ingredients list.
-    Returns a string with the nutritional breakdown (calories, protein, fat, carbs, etc.).
-    """
-    prompt = f"""
-    Analyze the following list of ingredients and estimate the total nutritional content for the entire recipe. 
-    Provide a table with Calories, Protein (g), Fat (g), Carbohydrates (g), Fiber (g), and Sugar (g) per recipe and per serving (assume 4 servings if not specified). 
-    If possible, also estimate sodium and cholesterol. 
-    List any assumptions you make. 
-    Respond in {language}.
-    Ingredients:\n{ingredients_text}
-    """
-    try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.2,
-                "top_p": 0.9,
-                "max_output_tokens": 800
-            }
-        )
-        return response.text if response.text else "Nutritional analysis not available."
-    except Exception as e:
-        return f"Nutritional analysis failed: {e}"
-
 if submitted and not invalid_time:
     # A new recipe generation was submitted
     with main_placeholder.container():
@@ -388,6 +233,7 @@ if submitted and not invalid_time:
                 if selected_language != "Any (auto-detect)":
                     language_instruction = f"Please write the recipe in {selected_language}.\n"
                 generated_text = generate_recipe(
+                    model,
                     language_instruction + ingredients_input_val,
                     diet_input_val,
                     cuisine_input_val,
@@ -430,7 +276,7 @@ if submitted and not invalid_time:
                 # --- Nutritional Analysis ---
                 st.markdown("#### 🥗 Nutritional Analysis (AI Estimated)")
                 nutrition_lang = view_lang_code if view_lang_code != "original" else "en"
-                nutrition = get_nutritional_analysis(ingredients_input_val, language=nutrition_lang)
+                nutrition = get_nutritional_analysis(model, ingredients_input_val, language=nutrition_lang)
                 st.markdown(nutrition)
                 # --- Export/Download Buttons ---
                 st.markdown("#### 📤 Export Recipe")
@@ -470,7 +316,7 @@ elif st.session_state.selected_history_index is not None:
         # --- Nutritional Analysis for History ---
         st.markdown("#### 🥗 Nutritional Analysis (AI Estimated)")
         nutrition_lang = view_lang_code if view_lang_code != "original" else "en"
-        nutrition = get_nutritional_analysis(inputs['ingredients'], language=nutrition_lang)
+        nutrition = get_nutritional_analysis(model, inputs['ingredients'], language=nutrition_lang)
         st.markdown(nutrition)
         # --- Export/Download Buttons ---
         st.markdown("#### 📤 Export Recipe")
