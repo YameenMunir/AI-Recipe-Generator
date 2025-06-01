@@ -267,8 +267,12 @@ if submitted and not invalid_time:
                 st.markdown("---")
                 display_text = generated_text
                 if view_lang_code != "original":
-                    with st.spinner("Translating..."):
-                        display_text = translate_text(generated_text, view_lang_code)
+                    try:
+                        with st.spinner("Translating..."):
+                            display_text = translate_text(generated_text, view_lang_code)
+                    except Exception as e:
+                        st.error(f"🌐 Translation failed. Please try a different language or check your internet connection. If the problem persists, try generating the recipe in English.\nError details: {str(e)}")
+                        display_text = generated_text
                 st.markdown(display_text)
                 # --- Nutritional Analysis ---
                 st.markdown("#### 🥗 Nutritional Analysis (AI Estimated)")
@@ -296,7 +300,7 @@ if submitted and not invalid_time:
                     )
             else:
                 if ingredients_input_val.strip():
-                    st.error("💥 Oops! Failed to generate a recipe. Please check error messages above or try adjusting your inputs.")
+                    st.error("💥 Oops! Recipe generation failed.\n\nSuggestions:\n- Double-check your API key and internet connection.\n- Try using different or fewer ingredients.\n- Reduce restrictions or try again in a few moments.\nIf the issue persists, check the application logs for more details.")
                 st.session_state.last_generated_inputs = None
 elif st.session_state.selected_history_index is not None:
     # Display a recipe from history if selected
