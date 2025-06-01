@@ -93,12 +93,14 @@ if 'selected_history_index' not in st.session_state:
 
 # --- Sidebar for Inputs ---
 with st.sidebar:
-    st.header("📝 Recipe Preferences")
+    if st.button("Show Example Ingredients", key="show_example_ingredients"):
+        st.info("e.g., 1 lb chicken breast, 2 cups cooked rice, 1 tbsp olive oil, 1 onion, chopped")
     with st.form("recipe_form_sidebar"):
         ingredients_input_val = st.text_input(
             "Main Ingredients (comma separated)",
             placeholder="e.g., chicken, broccoli, rice",
-            help="List the main ingredients you have or want to use."
+            help="List the main ingredients you have or want to use.",
+            key="ingredients_input_box"
         )
         meal_type_input_val = st.selectbox(
             "Meal Type",
