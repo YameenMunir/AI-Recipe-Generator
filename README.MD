@@ -8,8 +8,10 @@ This Streamlit application allows users to generate custom recipes based on ingr
 - **Customizable Inputs:**
   - Main ingredients (comma-separated).
   - Meal type (Dinner, Lunch, Breakfast, etc.).
-  - Cuisine style (Italian, Indian, Mexican, Any, etc.).
+  - Cuisine style (type any cuisine, or leave blank for no preference).
   - Dietary preferences (Vegetarian, Vegan, Gluten-Free, None, etc.).
+  - Cooking skill level (Any, Beginner, Intermediate, Advanced).
+  - Desired total cooking time (minutes, optional).
 - **Detailed Recipe Output:** Generated recipes include:
   - Creative Recipe Name
   - Enticing Description
@@ -26,14 +28,15 @@ This Streamlit application allows users to generate custom recipes based on ingr
   - Responsive design for different screen sizes.
 - **Session State Management:** Remembers and displays the last generated recipe within the current session until a new one is created.
 - **Recipe History with Delete Option:**
-  - The sidebar displays a list of all previously generated recipes for the current session and from the `recipe_history.json` file.
+  - The sidebar displays a list of all previously generated recipes, loaded from the `recipe_history.json` file. History is persistent across sessions.
+  - Advanced filtering and search by name, ingredient, cuisine, meal type, or diet.
   - Each recipe in the history has a delete (🗑️) button next to it. Clicking this button will permanently remove the recipe from the history and update the file.
   - You can click a recipe name to view it again in the main area.
 
 ## 🌍 Multi-Language Support
 
 - **Recipe Language Selection:** Choose the language for recipe generation (English, Spanish, French, German, and more coming soon).
-- **View/Export in Any Language:** Instantly translate and view/export recipes in your preferred language, including Urdu, Hindi, and Chinese.
+- **View/Export in Any Language:** Instantly translate and view/export recipes in your preferred language. The UI provides quick selection for English, Spanish, French, and German, but the translation engine supports additional languages (e.g., Urdu, Hindi, Chinese) for export.
 - **Unicode PDF Export:** All recipe text (including CJK, Urdu, Hindi, etc.) is exported to PDF using the included DejaVuSans.ttf font for full Unicode support.
 - **Font Setup:**
   - The app requires `DejaVuSans.ttf` in the project directory for Unicode PDF export. Download it from [dejavu-fonts.github.io](https://dejavu-fonts.github.io/) if not present.
@@ -46,7 +49,7 @@ This Streamlit application allows users to generate custom recipes based on ingr
 
 ## 📤 Export & History Features
 
-- **Download as PDF or TXT:** Recipes can be exported in any language, with correct Unicode rendering in PDFs.
+- **Download as PDF or TXT:** Recipes (both generated and from history) can be exported in any language, with correct Unicode rendering in PDFs and TXT files.
 - **Recipe History:**
   - All recipes are saved in `recipe_history.json` (not committed to git).
   - Advanced filtering and search by name, ingredient, cuisine, meal type, or diet.
@@ -54,6 +57,7 @@ This Streamlit application allows users to generate custom recipes based on ingr
 
 ## ⚠️ Error Handling & Dependencies
 
+- **Recipe Generation Errors:** If recipe generation fails, the app provides suggestions and error messages to help troubleshoot (e.g., check API key, internet connection, or try different ingredients).
 - **Translation/Nutrition Fallbacks:** If translation or nutrition analysis fails, the app displays a warning and continues gracefully.
 - **Dependencies:**
   - `googletrans==4.0.0-rc1` for translation
@@ -159,7 +163,7 @@ AI-Recipe-Generator/
    - Create a file named `.env` in the root directory of your project (if it does not already exist).
    - Add the following line to your `.env` file, replacing `YOUR_ACTUAL_GEMINI_API_KEY` with your real Gemini API key:
      ```env
-     GEMINI_API_KEY="YOUR ACTUAL GEMINI API KEY"
+     GEMINI_API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
      ```
    - **Note:** You must have a valid Gemini API key from Google. If you do not have one, visit the [Google AI Studio](https://aistudio.google.com/app/apikey) to generate your key.
    - Make sure `.env` is listed in your `.gitignore` so your API key is not committed to version control.
@@ -177,8 +181,9 @@ AI-Recipe-Generator/
    ```
 5. **Open your browser** and go to the local URL provided by Streamlit (usually `http://localhost:8501`).
 6. **Usage:**
-   - Enter your main ingredients, select your preferences, and click "✨ Generate Recipe".
+   - Enter your main ingredients, select your preferences (including skill level and cooking time), and click "✨ Generate Recipe".
    - The AI-generated recipe will appear in the main area of the app.
+   - When first opened or after clearing everything, the app displays a usage guide to help you get started.
 
 ---
 
@@ -186,4 +191,34 @@ AI-Recipe-Generator/
 
 - The application requires a valid Google Gemini API key to function.
 - You can obtain your API key from the [Google AI Studio API Key page](https://aistudio.google.com/app/apikey).
-- Place
+- Place your API key in the `.env` file in the root directory of the project, like so:
+  ```env
+  GEMINI_API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
+  ```
+- **Important:** Do not share your API key or expose it in public repositories. Keep it secure and treat it like a password.
+
+## Troubleshooting Common Issues
+
+- **Recipe generation fails:**
+  - Ensure your API key is correct and has the necessary permissions.
+  - Check your internet connection.
+  - Try using different or fewer ingredients.
+  - Reduce the complexity of dietary preferences or cuisine style.
+- **Translation or nutrition analysis fails:**
+  - These features rely on external services and may fail if the service is down or if there are network issues.
+  - The app will continue to function, but with limited features.
+- **PDF export issues:**
+  - Ensure `DejaVuSans.ttf` is present in the project directory.
+  - Check file permissions and available disk space.
+  - For Unicode issues, make sure the font cache files (`DejaVuSans.cw127.pkl`, `DejaVuSans.pkl`) are not corrupted.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Inspired by the need for creative and personalized recipe generation.
+- Powered by Google's Gemini AI for advanced recipe generation and nutritional analysis.
+- Translations and multi-language support powered by Google Translate.
+- PDF export with Unicode support made possible by the `fpdf` library and DejaVuSans font.
