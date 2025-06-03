@@ -300,6 +300,28 @@ if submitted and not invalid_time:
                         file_name=f"{recipe_name}.pdf",
                         mime="application/pdf"
                     )
+                # --- Print Recipe Button ---
+                st.markdown("#### Print Recipe")
+                safe_display_text = display_text.replace("'", "&#39;").replace('"', '&quot;').replace("\n", "<br>")
+                print_html = f'''
+                    <div id="printable-recipe" style="display:none;">{safe_display_text}</div>
+                    <a href="#" id="print-btn" style="display:inline-block;margin-top:10px;padding:0.5rem 1.2rem;background:#007bff;border-radius:0.25rem;color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:background 0.3s ease;box-shadow:0 2px 4px rgba(0,0,0,0.1);border:none;font-family:Arial,sans-serif;display:flex;align-items:center;gap:0.5rem;">
+                        <span>🖨️</span>Print Recipe
+                    </a>
+                    <script>
+                    document.getElementById('print-btn').onclick = function(e) {{
+                        e.preventDefault();
+                        var printContents = document.getElementById('printable-recipe').innerHTML;
+                        var win = window.open('', '', 'height=600,width=800');
+                        win.document.write('<html><head><title>Print Recipe</title></head><body><pre style="font-size:16px;white-space:pre-wrap;font-family:inherit;">' + printContents + '</pre></body></html>');
+                        win.document.close();
+                        win.focus();
+                        setTimeout(function() {{ win.print(); win.close(); }}, 300);
+                        return false;
+                    }};
+                    </script>
+                '''
+                st.components.v1.html(print_html, height=60)
             else:
                 if ingredients_input_val.strip():
                     st.error("💥 Oops! Recipe generation failed.\n\nSuggestions:\n- Double-check your API key and internet connection.\n- Try using different or fewer ingredients.\n- Reduce restrictions or try again in a few moments.\nIf the issue persists, check the application logs for more details.")
@@ -325,7 +347,7 @@ elif st.session_state.selected_history_index is not None:
             nutrition = get_nutritional_analysis(model, inputs['ingredients'], language=nutrition_lang)
         st.markdown(nutrition)
         # --- Export/Download Buttons ---
-        st.markdown("#### 📤 Export Recipe")
+        st.markdown("#### Export Recipe")
         col_txt, col_pdf = st.columns(2)
         with col_txt:
             st.download_button(
@@ -342,6 +364,28 @@ elif st.session_state.selected_history_index is not None:
                 file_name=f"{recipe_name}.pdf",
                 mime="application/pdf"
             )
+        # --- Print Recipe Button ---
+        st.markdown("#### Print Recipe")
+        safe_display_text = display_text.replace("'", "&#39;").replace('"', '&quot;').replace("\n", "<br>")
+        print_html = f'''
+            <div id="printable-recipe" style="display:none;">{safe_display_text}</div>
+            <a href="#" id="print-btn" style="display:inline-block;margin-top:10px;padding:0.5rem 1.2rem;background:#007bff;border-radius:0.25rem;color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:background 0.3s ease;box-shadow:0 2px 4px rgba(0,0,0,0.1);border:none;font-family:Arial,sans-serif;display:flex;align-items:center;gap:0.5rem;">
+                <span>🖨️</span>Print Recipe
+            </a>
+            <script>
+            document.getElementById('print-btn').onclick = function(e) {{
+                e.preventDefault();
+                var printContents = document.getElementById('printable-recipe').innerHTML;
+                var win = window.open('', '', 'height=600,width=800');
+                win.document.write('<html><head><title>Print Recipe</title></head><body><pre style="font-size:16px;white-space:pre-wrap;font-family:inherit;">' + printContents + '</pre></body></html>');
+                win.document.close();
+                win.focus();
+                setTimeout(function() {{ win.print(); win.close(); }}, 300);
+                return false;
+            }};
+            </script>
+        '''
+        st.components.v1.html(print_html, height=60)
 elif st.session_state.current_generated_recipe_text:
     # Display the last generated recipe if no specific action (new submit) is taken
     with main_placeholder.container():
@@ -374,6 +418,28 @@ elif st.session_state.current_generated_recipe_text:
                 file_name=f"{recipe_name}.pdf",
                 mime="application/pdf"
             )
+        # --- Print Recipe Button ---
+        st.markdown("#### Print Recipe")
+        safe_display_text = display_text.replace("'", "&#39;").replace('"', '&quot;').replace("\n", "<br>")
+        print_html = f'''
+            <div id="printable-recipe" style="display:none;">{safe_display_text}</div>
+            <a href="#" id="print-btn" style="display:inline-block;margin-top:10px;padding:0.5rem 1.2rem;background:#007bff;border-radius:0.25rem;color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:background 0.3s ease;box-shadow:0 2px 4px rgba(0,0,0,0.1);border:none;font-family:Arial,sans-serif;display:flex;align-items:center;gap:0.5rem;">
+                <span>🖨️</span>Print Recipe
+            </a>
+            <script>
+            document.getElementById('print-btn').onclick = function(e) {{
+                e.preventDefault();
+                var printContents = document.getElementById('printable-recipe').innerHTML;
+                var win = window.open('', '', 'height=600,width=800');
+                win.document.write('<html><head><title>Print Recipe</title></head><body><pre style="font-size:16px;white-space:pre-wrap;font-family:inherit;">' + printContents + '</pre></body></html>');
+                win.document.close();
+                win.focus();
+                setTimeout(function() {{ win.print(); win.close(); }}, 300);
+                return false;
+            }};
+            </script>
+        '''
+        st.components.v1.html(print_html, height=60)
 else:
     # Initial state or after clearing everything
     with main_placeholder.container():
