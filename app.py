@@ -10,7 +10,7 @@ import googletrans
 from googletrans import Translator
 import unicodedata
 from src.recipe_generation import configure_gemini, generate_recipe
-from src.pdf_utils import recipe_to_pdf
+from src.pdf_utils import recipe_to_pdf, meal_plan_to_pdf
 from src.translation_utils import translate_text
 from src.nutrition_utils import get_nutritional_analysis
 from src.history_utils import load_recipe_history, save_recipe_history
@@ -212,11 +212,68 @@ with st.sidebar:
     else:
         st.caption("No recipes match your search/filter.")
         
+    st.markdown("---")
+    st.header("🗓️ Weekly Meal Planning")
+    if 'meal_plan_inputs' not in st.session_state:
+        st.session_state.meal_plan_inputs = {day: {'ingredients': '', 'meal_type': 'Dinner', 'cuisine': '', 'diet': 'None'} for day in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']}
+    if 'meal_plan_results' not in st.session_state:
+        st.session_state.meal_plan_results = None
+    with st.expander("Plan Your Week", expanded=False):
+        for day in st.session_state.meal_plan_inputs:
+            st.markdown(f"**{day}**")
+            st.session_state.meal_plan_inputs[day]['ingredients'] = st.text_input(f"Ingredients for {day}", value=st.session_state.meal_plan_inputs[day]['ingredients'], key=f"mp_ing_{day}")
+            st.session_state.meal_plan_inputs[day]['meal_type'] = st.selectbox(f"Meal Type for {day}", ["Dinner", "Lunch", "Breakfast"], index=["Dinner", "Lunch", "Breakfast"].index(st.session_state.meal_plan_inputs[day]['meal_type']), key=f"mp_type_{day}")
+            st.session_state.meal_plan_inputs[day]['cuisine'] = st.text_input(f"Cuisine for {day}", value=st.session_state.meal_plan_inputs[day]['cuisine'], key=f"mp_cuisine_{day}")
+            st.session_state.meal_plan_inputs[day]['diet'] = st.selectbox(f"Diet for {day}", ["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto", "Paleo", "Dairy-Free", "Low-Carb", "Pescatarian"], index=["None", "Vegetarian", "Vegan", "Gluten-Free", "Keto", "Paleo", "Dairy-Free", "Low-Carb", "Pescatarian"].index(st.session_state.meal_plan_inputs[day]['diet']), key=f"mp_diet_{day}")
+            st.markdown("---")
+        if st.button("Generate Weekly Meal Plan", key="generate_meal_plan_btn"):
+            st.session_state.meal_plan_results = None
+            with st.spinner("Generating meal plan for the week..."):
+                from src.recipe_generation import generate_recipe, configure_gemini
+                from src.recipe_utils import extract_recipe_name
+                model = configure_gemini()
+                meal_plan = {}
+                failed_days = []
+                for day, vals in st.session_state.meal_plan_inputs.items():
+                    if not vals['ingredients'].strip():
+                        st.warning(f"⚠️ No ingredients provided for {day}. Skipping...")
+                        continue
+                    recipe_text = generate_recipe(model, vals['ingredients'], vals['diet'], vals['cuisine'], vals['meal_type'])
+                    if recipe_text:
+                        recipe_name = extract_recipe_name(recipe_text)
+                        meal_plan[day] = (recipe_name, recipe_text)
+                    else:
+                        failed_days.append(day)
+                        meal_plan[day] = ('Failed Recipe', 'Recipe generation failed. Please try again with different ingredients or preferences.')
+                
+                if failed_days:
+                    st.warning(f"⚠️ Failed to generate recipes for: {', '.join(failed_days)}")
+                if meal_plan:
+                    st.session_state.meal_plan_results = meal_plan
+                    st.success("🎉 Weekly meal plan generated!")
+                else:
+                    st.error("💥 Failed to generate any recipes. Please check your inputs and try again.")
 
 # --- Main Area for Displaying Recipes ---
 main_placeholder = st.empty() # Use a placeholder for dynamic content switching
 
-if submitted and not invalid_time:
+if st.session_state.get('meal_plan_results'):
+    # Display the meal plan in the main area
+    with main_placeholder.container():
+        st.header("🗓️ Your Weekly Meal Plan")
+        for day, (recipe_name, recipe_text) in st.session_state.meal_plan_results.items():
+            st.subheader(f"{day}: {recipe_name}")
+            st.markdown(recipe_text)
+            st.markdown("---")
+        # Add download button for the entire meal plan
+        pdf_bytes = meal_plan_to_pdf(st.session_state.meal_plan_results)
+        st.download_button(
+            label="📄 Download Meal Plan as PDF",
+            data=pdf_bytes,
+            file_name="Weekly_Meal_Plan.pdf",
+            mime="application/pdf"
+        )
+elif submitted and not invalid_time:
     # A new recipe generation was submitted
     with main_placeholder.container():
         # Removed: st.session_state.viewing_recipe_id = None
