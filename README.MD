@@ -22,6 +22,11 @@ This Streamlit application allows users to generate custom recipes based on ingr
   - Numbered Preparation Steps (with temperatures and timings)
   - Serving Suggestions
   - Optional Chef's Tips
+- **Meal Planning:**
+  - Generate weekly meal plans based on your preferences
+  - Save and manage meal plans
+  - View meal plan history
+  - Export meal plans to PDF
 - **User-Friendly Interface:**
   - Clean layout with inputs in the sidebar and recipe display in the main area.
   - Loading spinners and success/error messages for better user experience.
@@ -87,9 +92,11 @@ AI-Recipe-Generator/
 │   ├── nutrition_utils.py    # AI-powered nutrition analysis
 │   ├── pdf_utils.py          # Unicode PDF export (multi-language)
 │   ├── translation_utils.py  # Recipe translation functions
-│   └── history_utils.py      # Recipe history load/save/delete
+│   ├── history_utils.py      # Recipe history load/save/delete
+│   └── meal_plan_utils.py    # Meal planning functionality
 │
 ├── recipe_history.json   # Stores all generated recipes (not in git)
+├── meal_plan_history.json # Stores meal plans (not in git)
 ├── requirements.txt      # Python dependencies
 ├── README.MD             # Project documentation
 ├── DejaVuSans.ttf        # Font for Unicode PDF export
@@ -106,7 +113,9 @@ AI-Recipe-Generator/
 - **src/pdf_utils.py**: Exports recipes to PDF with full Unicode support for all languages.
 - **src/translation_utils.py**: Translates recipes and nutrition info to supported languages.
 - **src/history_utils.py**: Manages recipe history (save, load, delete) in `recipe_history.json`.
+- **src/meal_plan_utils.py**: Handles meal plan generation, saving, and management.
 - **recipe_history.json**: Stores all generated recipes (auto-created, not versioned).
+- **meal_plan_history.json**: Stores generated meal plans (auto-created, not versioned).
 - **DejaVuSans.ttf**: Required for Unicode PDF export (download from [dejavu-fonts.github.io](https://dejavu-fonts.github.io/)).
 - **DejaVuSans.cw127.pkl**, **DejaVuSans.pkl**: Font cache files (auto-generated, not versioned).
 - **__pycache__/**: Python bytecode cache directory.
