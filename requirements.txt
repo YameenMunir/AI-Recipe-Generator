@@ -1,5 +1,7 @@
 # Streamlit app requirements
-streamlit
-python-dotenv
-google-generativeai
-googletrans==4.0.0-rc1
+
+streamlit # Streamlit for web app framework
+python-dotenv # For environment variable management
+google-generativeai # Google Generative AI API
+googletrans==4.0.0-rc1 # Google Translate API
+fpdf # PDF generation
