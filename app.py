@@ -295,6 +295,16 @@ if st.session_state.get('meal_plan_results'):
             file_name="Weekly_Meal_Plan.pdf",
             mime="application/pdf"
         )
+        # Add download button for current meal plan as .txt
+        meal_plan_text = ""
+        for day, (recipe_name, recipe_text) in st.session_state.meal_plan_results.items():
+            meal_plan_text += f"{day}: {recipe_name}\n{recipe_text}\n\n"
+        st.download_button(
+            label="💾 Download Meal Plan as .txt",
+            data=meal_plan_text,
+            file_name="Weekly_Meal_Plan.txt",
+            mime="text/plain"
+        )
 elif st.session_state.selected_history_index is not None:
     # Display a recipe from history if selected
     with main_placeholder.container():
